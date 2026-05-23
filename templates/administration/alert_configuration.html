@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Alert Configuration - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-bell"></i> Alert Threshold Configuration</h2>
+            <p class="text-muted">Configure warning and critical thresholds for mental state monitoring</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Warning Threshold</th>
+                                    <th>Critical Threshold</th>
+                                    <th>Status</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for threshold in thresholds %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ threshold.get_metric_name_display }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            {% if threshold.metric_name == 'attention' %}≤{% else %}≥{% endif %} 
+                                            {{ threshold.warning_threshold }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            {% if threshold.metric_name == 'attention' %}≤{% else %}≥{% endif %} 
+                                            {{ threshold.critical_threshold }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if threshold.enabled %}
+                                            <span class="badge bg-success">Enabled</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Disabled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ threshold.updated_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'administration:edit_threshold' threshold.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <strong><i class="bi bi-info-circle"></i> Note:</strong>
+                        <ul class="mb-0">
+                            <li><strong>Fatigue, Stress, Workload:</strong> Higher values indicate worse conditions (0 = good, 1 = bad)</li>
+                            <li><strong>Attention:</strong> Lower values indicate worse conditions (1 = good, 0 = bad)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

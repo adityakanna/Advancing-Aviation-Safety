@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-graph-up"></i> Analytics Dashboard</h2>
+            <p class="text-muted">Monitor ML models, datasets, and performance metrics</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Active Models</h6>
+                            <h2 class="mb-0">{{ active_models.count|default:0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-robot" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Total Models</h6>
+                            <h2 class="mb-0">{{ total_models|default:0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-cpu" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Datasets</h6>
+                            <h2 class="mb-0">{{ total_datasets|default:0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-database" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Total Reports</h6>
+                            <h2 class="mb-0">{{ total_reports|default:0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-file-text" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{% url 'analytics:train_model' %}" class="btn btn-primary w-100 py-3">
+                                <i class="bi bi-lightning-charge-fill" style="font-size: 2rem;"></i><br>
+                                <strong>Train New Model</strong>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'analytics:model_management' %}" class="btn btn-success w-100 py-3">
+                                <i class="bi bi-gear-fill" style="font-size: 2rem;"></i><br>
+                                <strong>Manage Models</strong>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'analytics:reports_list' %}" class="btn btn-info w-100 py-3">
+                                <i class="bi bi-file-earmark-bar-graph" style="font-size: 2rem;"></i><br>
+                                <strong>View Reports</strong>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'administration:system_reports' %}" class="btn btn-warning w-100 py-3">
+                                <i class="bi bi-graph-up" style="font-size: 2rem;"></i><br>
+                                <strong>System Reports</strong>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Models -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-check-circle-fill"></i> Active Models</h5>
+                    <a href="{% url 'analytics:model_management' %}" class="btn btn-sm btn-light">
+                        <i class="bi bi-eye"></i> View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if active_models %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Model Name</th>
+                                    <th>Type</th>
+                                    <th>Algorithm</th>
+                                    <th>Accuracy</th>
+                                    <th>Precision</th>
+                                    <th>Recall</th>
+                                    <th>Version</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model in active_models %}
+                                <tr>
+                                    <td><strong>{{ model.name }}</strong></td>
+                                    <td><span class="badge bg-info">{{ model.get_model_type_display }}</span></td>
+                                    <td>{{ model.algorithm|default:"N/A" }}</td>
+                                    <td>
+                                        {% if model.accuracy %}
+                                            {{ model.accuracy|floatformat:3 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if model.precision %}
+                                            {{ model.precision|floatformat:3 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if model.recall %}
+                                            {{ model.recall|floatformat:3 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-secondary">v{{ model.version }}</span></td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-robot" style="font-size: 4rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No active models found.</p>
+                        <a href="{% url 'analytics:train_model' %}" class="btn btn-primary">
+                            <i class="bi bi-lightning-charge"></i> Train Your First Model
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Datasets -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-database-fill"></i> Available Datasets</h5>
+                    <a href="{% url 'analytics:upload_dataset' %}" class="btn btn-light btn-sm">
+                        <i class="bi bi-cloud-upload"></i> Upload Dataset
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if datasets %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Dataset Name</th>
+                                    <th>Total Samples</th>
+                                    <th>Features</th>
+                                    <th>Created By</th>
+                                    <th>Created Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dataset in datasets %}
+                                <tr>
+                                    <td><strong>{{ dataset.name }}</strong></td>
+                                    <td>{{ dataset.total_samples|default:"N/A" }}</td>
+                                    <td>{{ dataset.feature_count|default:"15" }}</td>
+                                    <td>{{ dataset.created_by.get_full_name|default:"System" }}</td>
+                                    <td>{{ dataset.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-database" style="font-size: 4rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No datasets available.</p>
+                        <p class="text-muted">Datasets are created during model training.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Reports -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-file-text-fill"></i> Recent Session Reports</h5>
+                    <a href="{% url 'analytics:reports_list' %}" class="btn btn-sm btn-light">
+                        <i class="bi bi-eye"></i> View All Reports
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Pilot</th>
+                                    <th>Session Date</th>
+                                    <th>Duration</th>
+                                    <th>Performance</th>
+                                    <th>Alerts</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in recent_reports %}
+                                <tr>
+                                    <td><strong>{{ report.session.pilot.get_full_name }}</strong></td>
+                                    <td>{{ report.session.start_time|date:"M d, Y H:i" }}</td>
+                                    <td>{{ report.session.duration_minutes|default:"0" }} min</td>
+                                    <td>
+                                        {% if report.overall_performance == 'excellent' %}
+                                            <span class="badge bg-success">Excellent</span>
+                                        {% elif report.overall_performance == 'good' %}
+                                            <span class="badge bg-primary">Good</span>
+                                        {% elif report.overall_performance == 'fair' %}
+                                            <span class="badge bg-warning">Fair</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Poor</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ report.total_alerts|default:"0" }} total</span>
+                                        {% if report.critical_alerts > 0 %}
+                                            <span class="badge bg-danger">{{ report.critical_alerts }} critical</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'monitoring:session_summary' report.session.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{% url 'analytics:download_report' report.id %}" class="btn btn-sm btn-success">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No reports available yet.</p>
+                        <p class="text-muted">Reports are generated after monitoring sessions.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

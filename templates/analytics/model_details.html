@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Model Details - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-cpu"></i> Model Details</h2>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Model Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Model Name:</th>
+                            <td>{{ model.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Type:</th>
+                            <td><span class="badge bg-info">{{ model.get_model_type_display }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Version:</th>
+                            <td>v{{ model.version }}</td>
+                        </tr>
+                        <tr>
+                            <th>Algorithm:</th>
+                            <td>{{ model.algorithm }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if model.status == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ model.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Training Date:</th>
+                            <td>{{ model.training_date|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Created By:</th>
+                            <td>{{ model.created_by.get_full_name }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Accuracy (R²):</th>
+                            <td><h4>{{ model.accuracy|floatformat:3 }}</h4></td>
+                        </tr>
+                        <tr>
+                            <th>Precision:</th>
+                            <td><h5>{{ model.precision|floatformat:3 }}</h5></td>
+                        </tr>
+                        <tr>
+                            <th>Recall:</th>
+                            <td><h5>{{ model.recall|floatformat:3 }}</h5></td>
+                        </tr>
+                        <tr>
+                            <th>F1 Score:</th>
+                            <td><h5>{{ model.f1_score|floatformat:3 }}</h5></td>
+                        </tr>
+                        <tr>
+                            <th>Training Samples:</th>
+                            <td>{{ model.training_samples }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'analytics:model_management' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Models
+            </a>
+            {% if model.status != 'active' %}
+            <a href="{% url 'analytics:activate_model' model.id %}" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Activate Model
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Start Monitoring - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-play-circle"></i> Start Monitoring Session</h3>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5>Form Errors:</h5>
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Device Status -->
+                    {% if is_admin %}
+                        {% if has_sufficient_devices %}
+                            <div class="alert alert-success">
+                                <h5><i class="bi bi-check-circle"></i> Devices Available</h5>
+                                <p class="mb-0">You have sufficient devices configured for monitoring.</p>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <h5><i class="bi bi-exclamation-triangle"></i> Limited Devices</h5>
+                                <p class="mb-2">You currently have {{ devices.count }} device(s) configured.</p>
+                                <small>As an administrator, you can proceed with testing. Regular pilots require at least 3 sensor devices (EEG, ECG, Eye Tracker).</small>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        {% if has_sufficient_devices %}
+                            <div class="alert alert-success">
+                                <h5><i class="bi bi-check-circle"></i> Assigned Devices</h5>
+                                <ul class="mb-0">
+                                    {% for device in devices %}
+                                    <li>{{ device.get_device_type_display }}: <strong>{{ device.device_id }}</strong> 
+                                        {% if device.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <h5><i class="bi bi-x-circle"></i> Insufficient Devices</h5>
+                                <p class="mb-0">You need at least 3 sensor devices assigned to start monitoring.</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.session_type.id_for_label }}" class="form-label">Session Type *</label>
+                            {{ form.session_type }}
+                            {% if form.session_type.errors %}
+                                <div class="text-danger mt-2">{{ form.session_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.aircraft_type.id_for_label }}" class="form-label">Aircraft Type</label>
+                            {{ form.aircraft_type }}
+                            {% if form.aircraft_type.errors %}
+                                <div class="text-danger mt-2">{{ form.aircraft_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.flight_number.id_for_label }}" class="form-label">Flight Number</label>
+                                {{ form.flight_number }}
+                                {% if form.flight_number.errors %}
+                                    <div class="text-danger mt-2">{{ form.flight_number.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.route.id_for_label }}" class="form-label">Route</label>
+                                {{ form.route }}
+                                {% if form.route.errors %}
+                                    <div class="text-danger mt-2">{{ form.route.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger mt-2">{{ form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
+                            <p class="mb-0">Ensure all sensors are properly attached and calibrated before starting the session.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-play-fill"></i> Start Monitoring Session
+                            </button>
+                            <a href="{% url 'monitoring:dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

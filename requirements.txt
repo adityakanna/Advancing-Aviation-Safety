@@ -1,0 +1,16 @@
+Django
+mysqlclient
+Pillow
+numpy
+pandas
+scikit-learn
+joblib
+matplotlib
+seaborn
+scipy
+channels
+channels-redis
+django-crispy-forms
+crispy-bootstrap5
+python-dateutil
+pytz

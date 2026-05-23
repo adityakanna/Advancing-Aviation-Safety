@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-speedometer2"></i> Pilot Dashboard</h2>
+            <p class="text-muted">Welcome, {{ user.get_full_name }}</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Total Sessions</h6>
+                            <h2 class="mb-0">{{ total_sessions }}</h2>
+                        </div>
+                        <i class="bi bi-clipboard-data" style="font-size: 2.5rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Flight Time</h6>
+                            <h2 class="mb-0">{{ total_flight_time }} min</h2>
+                        </div>
+                        <i class="bi bi-clock-history" style="font-size: 2.5rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Active Devices</h6>
+                            <h2 class="mb-0">{{ devices.count }}</h2>
+                        </div>
+                        <i class="bi bi-cpu" style="font-size: 2.5rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Recent Alerts</h6>
+                            <h2 class="mb-0">{{ recent_alerts.count }}</h2>
+                        </div>
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Session -->
+    {% if active_session %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info border-info shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="alert-heading">
+                            <i class="bi bi-broadcast"></i> Active Monitoring Session
+                        </h5>
+                        <p class="mb-0">Session started at {{ active_session.start_time|date:"H:i" }}</p>
+                    </div>
+                    <a href="{% url 'monitoring:live_monitoring' active_session.id %}" class="btn btn-info">
+                        <i class="bi bi-eye"></i> View Live Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-play-circle text-primary" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">No Active Session</h4>
+                    <p class="text-muted">Start a new monitoring session to begin tracking your mental state</p>
+                    <a href="{% url 'monitoring:start_monitoring' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-play-fill"></i> Start Monitoring
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <!-- Recent Sessions -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Sessions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in recent_sessions %}
+                                <tr>
+                                    <td>{{ session.start_time|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ session.get_session_type_display }}</span>
+                                    </td>
+                                    <td>{{ session.duration_minutes }} min</td>
+                                    <td>
+                                        {% if session.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif session.status == 'completed' %}
+                                            <span class="badge bg-secondary">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Aborted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if session.status == 'active' %}
+                                            <a href="{% url 'monitoring:live_monitoring' session.id %}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'monitoring:session_summary' session.id %}" class="btn btn-sm btn-info">
+                                                <i class="bi bi-file-text"></i> Report
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No sessions yet. Start your first monitoring session!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Alerts -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="bi bi-bell"></i> Recent Alerts</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% if recent_alerts %}
+                        {% for alert in recent_alerts %}
+                        <div class="alert alert-{{ alert.severity }} alert-sm mb-2">
+                            <strong>{{ alert.get_severity_display }}</strong><br>
+                            <small>{{ alert.message }}</small><br>
+                            <small class="text-muted">{{ alert.timestamp|date:"M d, H:i" }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">No recent alerts</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

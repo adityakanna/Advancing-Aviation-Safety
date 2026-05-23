@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Aviation Mental State Monitoring System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% if user.user_type == 'admin' or user.is_staff %}{% url 'administration:admin_dashboard' %}{% else %}{% url 'monitoring:dashboard' %}{% endif %}">
+                <i class="bi bi-airplane-fill"></i> Aviation Monitor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    
+                    <!-- PILOT NAVIGATION -->
+                    {% if user.user_type == 'pilot' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitoring:dashboard' %}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitoring:start_monitoring' %}">
+                            <i class="bi bi-play-circle"></i> Start Monitoring
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitoring:session_history' %}">
+                            <i class="bi bi-clock-history"></i> History
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- ADMIN NAVIGATION -->
+                    {% if user.user_type == 'admin' or user.is_staff or user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'administration:admin_dashboard' %}">
+                            <i class="bi bi-speedometer2"></i> Admin Dashboard
+                        </a>
+                    </li>
+                    
+                    <!-- MONITORING SECTION FOR ADMIN -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-activity"></i> Monitoring
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'monitoring:dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:start_monitoring' %}">
+                                <i class="bi bi-play-circle-fill"></i> Start Monitoring
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:session_history' %}">
+                                <i class="bi bi-clock-history"></i> Session History
+                            </a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'administration:user_management' %}">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:device_management' %}">
+                            <i class="bi bi-cpu"></i> Devices
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-graph-up"></i> Analytics
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'analytics:analytics_dashboard' %}">
+                                <i class="bi bi-bar-chart"></i> Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'analytics:model_management' %}">
+                                <i class="bi bi-robot"></i> ML Models
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'analytics:train_model' %}">
+                                <i class="bi bi-lightning-charge"></i> Train Model
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'analytics:reports_list' %}">
+                                <i class="bi bi-file-text"></i> All Reports
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'administration:alert_configuration' %}">
+                                <i class="bi bi-bell"></i> Alert Config
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'administration:system_configuration' %}">
+                                <i class="bi bi-sliders"></i> System Config
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'administration:audit_logs' %}">
+                                <i class="bi bi-journal-text"></i> Audit Logs
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'administration:system_reports' %}">
+                                <i class="bi bi-file-earmark-bar-graph"></i> System Reports
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <!-- USER MENU (Right side) -->
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ user.get_full_name }}
+                            {% if user.user_type == 'admin' or user.is_staff %}
+                                <span class="badge bg-danger">Admin</span>
+                            {% elif user.user_type == 'pilot' %}
+                                <span class="badge bg-info">Pilot</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-header">
+                                <strong>{{ user.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                <i class="bi bi-person"></i> My Profile
+                            </a></li>
+                            {% if user.user_type == 'pilot' %}
+                            <li><a class="dropdown-item" href="{% url 'monitoring:session_history' %}">
+                                <i class="bi bi-clock-history"></i> My Sessions
+                            </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container-fluid mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <strong>
+                {% if message.tags == 'error' %}
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                {% elif message.tags == 'success' %}
+                    <i class="bi bi-check-circle-fill"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="bi bi-info-circle-fill"></i>
+                {% endif %}
+            </strong>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}container-fluid{% endif %} {% block main_class %}{% endblock %} py-4">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light border-top">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <span class="text-muted">
+                        <i class="bi bi-shield-check"></i> 
+                        © 2026 Aviation Mental State Monitoring System
+                    </span>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="text-muted">
+                        {% if user.is_authenticated %}
+                            <i class="bi bi-person-badge"></i> 
+                            Logged in as: <strong>{{ user.get_full_name }}</strong>
+                            ({{ user.user_type|title }})
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

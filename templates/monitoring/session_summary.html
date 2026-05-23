@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+
+{% block title %}Session Summary - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="bi bi-file-text"></i> Session Report</h2>
+                <p class="text-muted mb-0">Detailed analysis of monitoring session</p>
+            </div>
+            <div>
+                <a href="{% url 'monitoring:dashboard' %}" class="btn btn-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+                {% if report and report.id %}
+                <a href="{% url 'analytics:download_report' report.id %}" class="btn btn-success">
+                    <i class="bi bi-download"></i> Download Report
+                </a>
+                {% else %}
+                <button class="btn btn-secondary" disabled>
+                    <i class="bi bi-hourglass-split"></i> Report Generating...
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Session Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Session Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong><i class="bi bi-person"></i> Pilot:</strong><br>
+                            {{ session.pilot.get_full_name }}<br>
+                            <small class="text-muted">{{ session.pilot.employee_id|default:"N/A" }}</small>
+                        </div>
+                        <div class="col-md-3">
+                            <strong><i class="bi bi-tag"></i> Session Type:</strong><br>
+                            <span class="badge bg-info">{{ session.get_session_type_display }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <strong><i class="bi bi-clock"></i> Duration:</strong><br>
+                            {{ session.duration_minutes|default:"0" }} minutes
+                        </div>
+                        <div class="col-md-3">
+                            <strong><i class="bi bi-calendar"></i> Date:</strong><br>
+                            {{ session.start_time|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                    {% if session.aircraft_type %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong><i class="bi bi-airplane"></i> Aircraft:</strong> {{ session.aircraft_type }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong><i class="bi bi-hash"></i> Flight Number:</strong> {{ session.flight_number|default:"N/A" }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong><i class="bi bi-signpost"></i> Route:</strong> {{ session.route|default:"N/A" }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if report %}
+    <!-- Performance Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-start border-danger border-4">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="bi bi-moon"></i> Average Fatigue
+                    </h6>
+                    <h2 class="{% if report.avg_fatigue > 0.7 %}text-danger{% elif report.avg_fatigue > 0.5 %}text-warning{% else %}text-success{% endif %}">
+                        {{ report.avg_fatigue|floatformat:2 }}
+                    </h2>
+                    <small class="text-muted">Max: {{ report.max_fatigue|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-start border-warning border-4">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="bi bi-heart-pulse"></i> Average Stress
+                    </h6>
+                    <h2 class="{% if report.avg_stress > 0.7 %}text-danger{% elif report.avg_stress > 0.5 %}text-warning{% else %}text-success{% endif %}">
+                        {{ report.avg_stress|floatformat:2 }}
+                    </h2>
+                    <small class="text-muted">Max: {{ report.max_stress|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-start border-info border-4">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="bi bi-eye"></i> Average Attention
+                    </h6>
+                    <h2 class="{% if report.avg_attention < 0.4 %}text-danger{% elif report.avg_attention < 0.6 %}text-warning{% else %}text-success{% endif %}">
+                        {{ report.avg_attention|floatformat:2 }}
+                    </h2>
+                    <small class="text-muted">Min: {{ report.min_attention|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-start border-primary border-4">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="bi bi-cpu"></i> Average Workload
+                    </h6>
+                    <h2 class="{% if report.avg_workload > 0.7 %}text-danger{% elif report.avg_workload > 0.5 %}text-warning{% else %}text-success{% endif %}">
+                        {{ report.avg_workload|floatformat:2 }}
+                    </h2>
+                    <small class="text-muted">Max: {{ report.max_workload|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overall Performance -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> Overall Performance</h5>
+                </div>
+                <div class="card-body text-center py-4">
+                    {% if report.overall_performance == 'excellent' %}
+                        <i class="bi bi-emoji-smile" style="font-size: 3rem; color: #198754;"></i>
+                        <h1 class="display-4 text-success text-uppercase mt-3">Excellent</h1>
+                    {% elif report.overall_performance == 'good' %}
+                        <i class="bi bi-emoji-neutral" style="font-size: 3rem; color: #0d6efd;"></i>
+                        <h1 class="display-4 text-primary text-uppercase mt-3">Good</h1>
+                    {% elif report.overall_performance == 'fair' %}
+                        <i class="bi bi-emoji-expressionless" style="font-size: 3rem; color: #ffc107;"></i>
+                        <h1 class="display-4 text-warning text-uppercase mt-3">Fair</h1>
+                    {% else %}
+                        <i class="bi bi-emoji-frown" style="font-size: 3rem; color: #dc3545;"></i>
+                        <h1 class="display-4 text-danger text-uppercase mt-3">Poor</h1>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="bi bi-bell"></i> Alert Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <i class="bi bi-exclamation-circle" style="font-size: 2rem; color: #6c757d;"></i>
+                            <h3 class="mt-2">{{ report.total_alerts|default:"0" }}</h3>
+                            <p class="text-muted mb-0">Total Alerts</p>
+                        </div>
+                        <div class="col-6">
+                            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc3545;"></i>
+                            <h3 class="text-danger mt-2">{{ report.critical_alerts|default:"0" }}</h3>
+                            <p class="text-muted mb-0">Critical Alerts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommendations -->
+    {% if report.recommendations %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for recommendation in report.recommendations.splitlines %}
+                        {% if recommendation %}
+                        <li class="list-group-item">
+                            <i class="bi bi-check-circle text-success"></i> {{ recommendation }}
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <!-- No Report Available -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Report Not Available</strong><br>
+                The session report is being generated. Please refresh the page in a moment.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Mental State Trends Chart -->
+    {% if assessments %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Mental State Trends During Session</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="sessionTrendsChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                No assessment data available for this session.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Alerts List -->
+    {% if alerts %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Alerts During Session ({{ alerts.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="bi bi-clock"></i> Time</th>
+                                    <th><i class="bi bi-shield-exclamation"></i> Severity</th>
+                                    <th><i class="bi bi-tag"></i> Type</th>
+                                    <th><i class="bi bi-chat-left-text"></i> Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alert in alerts %}
+                                <tr>
+                                    <td>{{ alert.timestamp|date:"H:i:s" }}</td>
+                                    <td>
+                                        {% if alert.severity == 'critical' %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-exclamation-triangle-fill"></i> Critical
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-exclamation-circle"></i> Warning
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ alert.alert_type|title }}</span>
+                                    </td>
+                                    <td>{{ alert.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i>
+                <strong>Great!</strong> No alerts were triggered during this session.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if assessments %}
+<script>
+// Prepare chart data
+let labels = [];
+let fatigueData = [];
+let stressData = [];
+let attentionData = [];
+let workloadData = [];
+
+{% for assessment in assessments %}
+labels.push('{{ assessment.timestamp|date:"H:i:s" }}');
+fatigueData.push({{ assessment.fatigue_score|default:"0" }});
+stressData.push({{ assessment.stress_score|default:"0" }});
+attentionData.push({{ assessment.attention_score|default:"0" }});
+workloadData.push({{ assessment.workload_score|default:"0" }});
+{% endfor %}
+
+// Create chart
+let ctx = document.getElementById('sessionTrendsChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Fatigue',
+                data: fatigueData,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Stress',
+                data: stressData,
+                borderColor: 'rgb(255, 159, 64)',
+                backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Attention',
+                data: attentionData,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Workload',
+                data: workloadData,
+                borderColor: 'rgb(153, 102, 255)',
+                backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += (context.parsed.y * 100).toFixed(0) + '%';
+                        return label;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 1,
+                ticks: {
+                    callback: function(value) {
+                        return (value * 100) + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

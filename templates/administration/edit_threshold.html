@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Threshold - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-pencil"></i> Edit Alert Threshold</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-4">{{ threshold.get_metric_name_display }}</h4>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Warning Threshold *</label>
+                                {{ form.warning_threshold }}
+                                {% if form.warning_threshold.errors %}
+                                    <div class="text-danger">{{ form.warning_threshold.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Value between 0 and 1</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Critical Threshold *</label>
+                                {{ form.critical_threshold }}
+                                {% if form.critical_threshold.errors %}
+                                    <div class="text-danger">{{ form.critical_threshold.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Value between 0 and 1</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.enabled }}
+                                <label class="form-check-label">
+                                    Enable this threshold
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
+                            <p class="mb-0">
+                                {% if threshold.metric_name == 'attention' %}
+                                For attention, lower values trigger alerts (e.g., warning ≤ 0.4, critical ≤ 0.25)
+                                {% else %}
+                                For {{ threshold.get_metric_name_display|lower }}, higher values trigger alerts (e.g., warning ≥ 0.6, critical ≥ 0.75)
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'administration:alert_configuration' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

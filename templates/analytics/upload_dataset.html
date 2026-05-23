@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Dataset - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0"><i class="bi bi-cloud-upload"></i> Upload Training Dataset</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Dataset Name *</label>
+                            <input type="text" name="dataset_name" class="form-control" placeholder="e.g., Training Dataset - Feb 2026" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="dataset_description" class="form-control" rows="3" placeholder="Describe the dataset (optional)"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Dataset File (CSV) *</label>
+                            <input type="file" name="dataset_file" class="form-control" accept=".csv" required>
+                            <small class="form-text text-muted">Upload a CSV file with sensor readings and mental state labels.</small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong><i class="bi bi-info-circle"></i> Required Columns:</strong>
+                            <ul class="mb-0">
+                                <li>EEG: eeg_channel_1 through eeg_channel_8</li>
+                                <li>ECG: ecg_heart_rate, ecg_hrv, ecg_rr_interval</li>
+                                <li>Eye Tracking: eye_blink_rate, eye_fixation_duration, eye_saccade_velocity, pupil_diameter</li>
+                                <li>Labels: fatigue, stress, attention, workload (values 0-1)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-upload"></i> Upload Dataset
+                            </button>
+                            <a href="{% url 'analytics:analytics_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}System Reports - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-bar-chart"></i> System Reports & Analytics</h2>
+        </div>
+    </div>
+    
+    <!-- Overview Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6>Total Pilots</h6>
+                    <h2>{{ total_pilots }}</h2>
+                    <small>{{ active_pilots }} Active</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6>Total Sessions</h6>
+                    <h2>{{ total_sessions }}</h2>
+                    <small>{{ completed_sessions }} Completed</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h6>Total Alerts</h6>
+                    <h2>{{ total_alerts }}</h2>
+                    <small>{{ critical_alerts }} Critical</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h6>Active Sessions</h6>
+                    <h2>{{ active_sessions }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Statistics -->
+    {% if avg_performance_stats %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Average Mental State Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Fatigue</h6>
+                            <h3>{{ avg_performance_stats.avg_fatigue|floatformat:2 }}</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Stress</h6>
+                            <h3>{{ avg_performance_stats.avg_stress|floatformat:2 }}</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Attention</h6>
+                            <h3>{{ avg_performance_stats.avg_attention|floatformat:2 }}</h3>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Workload</h6>
+                            <h3>{{ avg_performance_stats.avg_workload|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Distribution -->
+    {% if performance_distribution %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Performance Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        {% for perf in performance_distribution %}
+                        <div class="col-md-3">
+                            <h6 class="text-uppercase text-muted">{{ perf.overall_performance }}</h6>
+                            <h2>{{ perf.count }}</h2>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

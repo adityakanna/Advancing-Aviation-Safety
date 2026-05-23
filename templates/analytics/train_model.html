@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Train ML Model - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="bi bi-cpu"></i> Train Machine Learning Model
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="{% url 'analytics:train_model' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Model Name -->
+                        <div class="mb-4">
+                            <label for="model_name" class="form-label">
+                                Model Name <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control form-control-lg" 
+                                id="model_name" 
+                                name="model_name"
+                                placeholder="e.g., Fatigue Detection Model v2.0"
+                                required
+                            >
+                            <small class="form-text text-muted">
+                                Enter a descriptive name for your model
+                            </small>
+                        </div>
+                        
+                        <!-- Model Type -->
+                        <div class="mb-4">
+                            <label for="model_type" class="form-label">
+                                Model Type <span class="text-danger">*</span>
+                            </label>
+                            <select 
+                                class="form-select form-select-lg" 
+                                id="model_type" 
+                                name="model_type"
+                                required
+                            >
+                                <option value="">-- Select Model Type --</option>
+                                <option value="fatigue">Fatigue Detection</option>
+                                <option value="stress">Stress Detection</option>
+                                <option value="attention">Attention Monitoring</option>
+                                <option value="workload">Workload Assessment</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Select the mental state metric to predict
+                            </small>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Algorithm -->
+                            <div class="col-md-6 mb-4">
+                                <label for="algorithm" class="form-label">
+                                    Algorithm <span class="text-danger">*</span>
+                                </label>
+                                <select 
+                                    class="form-select form-select-lg" 
+                                    id="algorithm" 
+                                    name="algorithm"
+                                    required
+                                >
+                                    <option value="">-- Select Algorithm --</option>
+                                    <option value="RandomForest" selected>Random Forest</option>
+                                    <option value="GradientBoosting">Gradient Boosting</option>
+                                    <option value="XGBoost">XGBoost</option>
+                                    <option value="SVM">Support Vector Machine</option>
+                                    <option value="NeuralNetwork">Neural Network</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    ML algorithm to use
+                                </small>
+                            </div>
+                            
+                            <!-- Version -->
+                            <div class="col-md-6 mb-4">
+                                <label for="version" class="form-label">
+                                    Version <span class="text-danger">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="form-control form-control-lg" 
+                                    id="version" 
+                                    name="version"
+                                    value="1.0"
+                                    placeholder="e.g., 1.0"
+                                    required
+                                >
+                                <small class="form-text text-muted">
+                                    Model version number
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Training Dataset -->
+                        <div class="mb-4">
+                            <label for="dataset" class="form-label">
+                                Training Dataset <span class="text-danger">*</span>
+                            </label>
+                            <select 
+                                class="form-select form-select-lg" 
+                                id="dataset" 
+                                name="dataset"
+                                required
+                            >
+                                <option value="realistic_training_dataset.csv" selected>
+                                    Realistic Training Dataset (30,000 samples)
+                                </option>
+                                <option value="realistic_test_dataset.csv">
+                                    Test Dataset (5,000 samples)
+                                </option>
+                                <option value="realistic_validation_dataset.csv">
+                                    Validation Dataset (7,500 samples)
+                                </option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Select the dataset to train the model
+                            </small>
+                        </div>
+                        
+                        <!-- Note Box -->
+                        <div class="alert alert-info" role="alert">
+                            <i class="bi bi-info-circle"></i> <strong>Note:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Model training may take 5-10 minutes depending on dataset size</li>
+                                <li>The system will automatically activate the model once training is complete</li>
+                                <li>You can monitor training progress in the model management page</li>
+                                <li>4 models will be trained simultaneously (fatigue, stress, attention, workload)</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg py-3">
+                                <i class="bi bi-lightning-charge-fill"></i> Start Training
+                            </button>
+                            <a href="{% url 'analytics:model_management' %}" class="btn btn-outline-secondary btn-lg py-3">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Additional Information -->
+            <div class="card mt-4 shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-question-circle"></i> What happens during training?</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li><strong>Data Loading:</strong> The selected dataset is loaded and preprocessed</li>
+                        <li><strong>Feature Scaling:</strong> Input features are normalized for better performance</li>
+                        <li><strong>Model Training:</strong> The algorithm learns patterns from the training data</li>
+                        <li><strong>Validation:</strong> Model performance is evaluated on test data</li>
+                        <li><strong>Model Saving:</strong> Trained model is saved and automatically activated</li>
+                    </ol>
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        The system trains 4 separate models for fatigue, stress, attention, and workload detection.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation feedback
+document.querySelector('form').addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Training Started...';
+    submitBtn.disabled = true;
+});
+
+// Auto-generate model name based on type selection
+document.getElementById('model_type').addEventListener('change', function() {
+    const modelNameInput = document.getElementById('model_name');
+    const modelType = this.options[this.selectedIndex].text;
+    const version = document.getElementById('version').value || '1.0';
+    
+    if (this.value && !modelNameInput.value) {
+        modelNameInput.value = `${modelType} Model v${version}`;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Monitoring - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-broadcast"></i> Live Monitoring Session</h2>
+            <a href="{% url 'monitoring:end_monitoring' session.id %}" class="btn btn-danger">
+                <i class="bi bi-stop-circle"></i> End Session
+            </a>
+        </div>
+    </div>
+    
+    <!-- Session Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Session Type:</strong> {{ session.get_session_type_display }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Start Time:</strong> {{ session.start_time|date:"H:i:s" }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Aircraft:</strong> {{ session.aircraft_type|default:"N/A" }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Flight:</strong> {{ session.flight_number|default:"N/A" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mental State Gauges -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5>Fatigue Level</h5>
+                    <canvas id="fatigueGauge" width="200" height="200"></canvas>
+                    <h3 id="fatigueValue" class="mt-2">0.00</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5>Stress Level</h5>
+                    <canvas id="stressGauge" width="200" height="200"></canvas>
+                    <h3 id="stressValue" class="mt-2">0.00</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5>Attention Level</h5>
+                    <canvas id="attentionGauge" width="200" height="200"></canvas>
+                    <h3 id="attentionValue" class="mt-2">0.00</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5>Workload Level</h5>
+                    <canvas id="workloadGauge" width="200" height="200"></canvas>
+                    <h3 id="workloadValue" class="mt-2">0.00</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overall Risk -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div id="overallRiskCard" class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h4>Overall Risk Level</h4>
+                    <h2 id="overallRisk" class="display-4">MONITORING...</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alert Section -->
+    <div id="alertSection" class="row mb-4" style="display: none;">
+        <div class="col-12">
+            <div id="alertCard" class="alert alert-dismissible fade show">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Alert!</h5>
+                <p id="alertMessage"></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sensor Data Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Mental State Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="mentalStateChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let sessionId = {{ session.id }};
+let updateInterval;
+let chartData = {
+    labels: [],
+    fatigue: [],
+    stress: [],
+    attention: [],
+    workload: []
+};
+
+// Initialize Chart
+let ctx = document.getElementById('mentalStateChart').getContext('2d');
+let mentalStateChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: chartData.labels,
+        datasets: [
+            {
+                label: 'Fatigue',
+                data: chartData.fatigue,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Stress',
+                data: chartData.stress,
+                borderColor: 'rgb(255, 159, 64)',
+                backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Attention',
+                data: chartData.attention,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Workload',
+                data: chartData.workload,
+                borderColor: 'rgb(153, 102, 255)',
+                backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 1
+            }
+        }
+    }
+});
+
+// Update data function
+function updateLiveData() {
+    $.ajax({
+        url: `/monitoring/live/${sessionId}/data/`,
+        method: 'GET',
+        success: function(data) {
+            // Update values
+            $('#fatigueValue').text(data.mental_state.fatigue.toFixed(2));
+            $('#stressValue').text(data.mental_state.stress.toFixed(2));
+            $('#attentionValue').text(data.mental_state.attention.toFixed(2));
+            $('#workloadValue').text(data.mental_state.workload.toFixed(2));
+            
+            // Update gauges colors
+            updateGaugeColor('fatigueValue', data.mental_state.fatigue);
+            updateGaugeColor('stressValue', data.mental_state.stress);
+            updateGaugeColor('attentionValue', data.mental_state.attention, true);
+            updateGaugeColor('workloadValue', data.mental_state.workload);
+            
+            // Update overall risk
+            updateOverallRisk(data.overall_risk);
+            
+            // Handle alerts
+            if (data.alert.triggered) {
+                showAlert(data.alert);
+            }
+            
+            // Update chart
+            let now = new Date();
+            let timeStr = now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
+            
+            chartData.labels.push(timeStr);
+            chartData.fatigue.push(data.mental_state.fatigue);
+            chartData.stress.push(data.mental_state.stress);
+            chartData.attention.push(data.mental_state.attention);
+            chartData.workload.push(data.mental_state.workload);
+            
+            // Keep only last 20 data points
+            if (chartData.labels.length > 20) {
+                chartData.labels.shift();
+                chartData.fatigue.shift();
+                chartData.stress.shift();
+                chartData.attention.shift();
+                chartData.workload.shift();
+            }
+            
+            mentalStateChart.update();
+        },
+        error: function(error) {
+            console.error('Error fetching live data:', error);
+        }
+    });
+}
+
+function updateGaugeColor(elementId, value, inverse = false) {
+    let element = $('#' + elementId);
+    element.removeClass('text-success text-warning text-danger');
+    
+    if (inverse) {
+        // For attention, lower is worse
+        if (value >= 0.6) {
+            element.addClass('text-success');
+        } else if (value >= 0.4) {
+            element.addClass('text-warning');
+        } else {
+            element.addClass('text-danger');
+        }
+    } else {
+        // For fatigue, stress, workload - higher is worse
+        if (value < 0.5) {
+            element.addClass('text-success');
+        } else if (value < 0.7) {
+            element.addClass('text-warning');
+        } else {
+            element.addClass('text-danger');
+        }
+    }
+}
+
+function updateOverallRisk(risk) {
+    let card = $('#overallRiskCard');
+    let text = $('#overallRisk');
+    
+    card.removeClass('bg-success bg-warning bg-danger bg-dark');
+    text.removeClass('text-white text-dark');
+    
+    switch(risk) {
+        case 'low':
+            card.addClass('bg-success');
+            text.addClass('text-white').text('LOW RISK');
+            break;
+        case 'medium':
+            card.addClass('bg-warning');
+            text.addClass('text-dark').text('MEDIUM RISK');
+            break;
+        case 'high':
+            card.addClass('bg-danger');
+            text.addClass('text-white').text('HIGH RISK');
+            break;
+        case 'critical':
+            card.addClass('bg-dark');
+            text.addClass('text-white').text('CRITICAL RISK');
+            playAlertSound();
+            break;
+    }
+}
+
+function showAlert(alert) {
+    let alertSection = $('#alertSection');
+    let alertCard = $('#alertCard');
+    let alertMessage = $('#alertMessage');
+    
+    alertCard.removeClass('alert-info alert-warning alert-danger');
+    
+    if (alert.severity === 'critical') {
+        alertCard.addClass('alert-danger');
+    } else if (alert.severity === 'warning') {
+        alertCard.addClass('alert-warning');
+    } else {
+        alertCard.addClass('alert-info');
+    }
+    
+    alertMessage.text(alert.message);
+    alertSection.show();
+    
+    // Play sound for critical alerts
+    if (alert.severity === 'critical') {
+        playAlertSound();
+    }
+}
+
+function playAlertSound() {
+    // Simple beep using Web Audio API
+    try {
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let oscillator = audioContext.createOscillator();
+        oscillator.frequency.value = 800;
+        oscillator.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch(e) {
+        console.log('Audio not supported');
+    }
+}
+
+// Start updating
+$(document).ready(function() {
+    updateLiveData();
+    updateInterval = setInterval(updateLiveData, 3000); // Update every 3 seconds
+});
+
+// Clean up on page unload
+$(window).on('beforeunload', function() {
+    clearInterval(updateInterval);
+});
+</script>
+{% endblock %}

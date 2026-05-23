@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}End Monitoring - Aviation Monitor{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="bi bi-stop-circle"></i> End Monitoring Session</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-exclamation-triangle"></i> Confirm Session End</h5>
+                        <p>Are you sure you want to end this monitoring session? A comprehensive report will be generated.</p>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>Session Information</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Session Type:</strong> {{ session.get_session_type_display }}</li>
+                                <li><strong>Started:</strong> {{ session.start_time }}</li>
+                                <li><strong>Aircraft:</strong> {{ session.aircraft_type|default:"N/A" }}</li>
+                                <li><strong>Flight Number:</strong> {{ session.flight_number|default:"N/A" }}</li>
+                                <li><strong>Route:</strong> {{ session.route|default:"N/A" }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">End Session Notes (Optional)</label>
+                            {{ form.notes }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="bi bi-stop-fill"></i> End Session & Generate Report
+                            </button>
+                            <a href="{% url 'monitoring:live_monitoring' session.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Monitoring
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
